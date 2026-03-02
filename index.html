@@ -3,129 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Colombia: Tierra de Sismos y Resiliencia</title>
-    <!-- Incluir Plotly via CDN -->
+    <title>Colombia Sísmica - SGC Dashboard</title>
     <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f7fafc;
-            color: #2d3748;
-            margin: 0;
-            padding: 20px;
+        :root {
+            --sgc-green: #104f32;
+            --col-yellow: #FCD116;
+            --col-blue: #003893;
+            --col-red: #CE1126;
+            --bg-color: #f4f7f6;
         }
-        .header {
-            text-align: center;
-            padding: 30px 20px;
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-            color: white;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        h1 { margin: 0; font-size: 2.8rem; }
-        h2 { margin-top: 10px; font-weight: 300; font-size: 1.3rem; color: #cbd5e0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--bg-color); color: #333; margin: 0; padding: 0; }
+        .header { background: linear-gradient(135deg, var(--sgc-green) 0%, #1a202c 100%); color: white; padding: 40px 20px; text-align: center; border-bottom: 5px solid var(--col-yellow); }
+        .header h1 { margin: 0; font-size: 3rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .header h2 { font-weight: 300; font-size: 1.3rem; margin-top: 10px; color: #e2e8f0; }
         
-        .narrative-intro {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-            line-height: 1.6;
-            font-size: 1.1rem;
-            color: #4a5568;
-            border-left: 6px solid #e53e3e;
-        }
-        .narrative-intro strong {
-            color: #2b6cb0;
-        }
+        .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
+        
+        .tab { overflow: hidden; background-color: white; border-radius: 8px 8px 0 0; display: flex; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-wrap: wrap; }
+        .tab button { background-color: inherit; float: left; border: none; outline: none; cursor: pointer; padding: 18px 24px; transition: 0.3s; font-size: 1.1rem; font-weight: bold; flex: 1; color: #4a5568; border-bottom: 4px solid transparent; }
+        .tab button:hover { background-color: #f1f5f9; }
+        .tab button.active { color: var(--sgc-green); border-bottom: 4px solid var(--col-red); background-color: #f8fafc; }
+        
+        .tabcontent { display: none; padding: 30px; background-color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 0 0 8px 8px; animation: fadeEffect 0.5s; }
+        @keyframes fadeEffect { from {opacity: 0;} to {opacity: 1;} }
 
-        .cards-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            border-top: 5px solid #4a5568;
-        }
-        .c-2 { border-color: #e53e3e; } /* Bucaramanga - Profundo */
-        .c-3 { border-color: #dd6b20; } /* Chocó - Fuerte */
-        .c-4 { border-color: #805ad5; }
-        .c-0 { border-color: #3182ce; }
+        .intro-box { border-left: 6px solid var(--col-blue); padding: 20px; background: #ebf8ff; border-radius: 0 8px 8px 0; font-size: 1.15rem; color: #2c5282; line-height: 1.6; margin-bottom: 30px; }
+
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .kpi-card { background: white; border: 1px solid #e2e8f0; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .kpi-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .kpi-title { font-size: 1.25rem; font-weight: bold; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #edf2f7; }
+        .kpi-desc { color: #4a5568; line-height: 1.5; font-size: 0.95rem; }
         
-        .graph-container {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-        }
-        .footer { text-align: center; color: #718096; margin-top: 50px; font-size: 0.9rem; }
+        .c-2 { border-top: 5px solid #EF553B; }
+        .c-3 { border-top: 5px solid #AB63FA; }
+        .c-4 { border-top: 5px solid #FFA15A; }
+        .c-0 { border-top: 5px solid #00CC96; }
+
+        .graphs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .graph-wrapper { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; background: #fff; }
+        .graph-wrapper.full { grid-column: 1 / -1; }
+        
+        .plotly-graph-div { width: 100% !important; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>Colombia: Un País Movido</h1>
-        <h2>De la Dinámica Cultural a la Furia Geológica - Análisis CRISP-DM</h2>
+        <h2>Dinámica Cultural, Social y Furia Geológica (CRISP-DM)</h2>
     </div>
 
-    <div class="narrative-intro">
-        <p>Colombia es mundialmente famosa por ser un país <strong>"movido"</strong>: nuestra música vibrante, nuestra diversidad cultural y la energía inagotable de nuestra gente. Sin embargo, esta característica va mucho más allá de lo social; está profundamente arraigada en nuestra geografía. Situado en el punto de encuentro de las placas tectónicas de Nazca, Suramericana y del Caribe, el suelo colombiano baila literalmente una cumbia geológica diaria.</p>
-        <p>El <strong>68% de la energía sísmica</strong> del país se concentra en un ecosistema subterráneo fascinante que moldea incluso el carácter de sus habitantes. ¿Quieres descubrir cómo el Machine Learning puede leer estas cicatrices de la tierra? Hemos utilizado el algoritmo de <em>Clustering K-Means</em> para revelar zonas donde la realidad social y la geológica se entrelazan trágicamente.</p>
+    <div class="container">
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'Contexto')">1. Contexto Geográfico</button>
+            <button class="tablinks" onclick="openTab(event, 'EDA')">2. Patrones (EDA)</button>
+            <button class="tablinks" onclick="openTab(event, 'Modeling')">3. K-Means (Scaling)</button>
+            <button class="tablinks" onclick="openTab(event, 'Clusters')">4. Análisis Social y Clústers</button>
+        </div>
+
+        <!-- TAB 1: CONTEXTO -->
+        <div id="Contexto" class="tabcontent" style="display: block;">
+            <div class="intro-box">
+                <p>Nuestra cultura está moldeada por el entorno. Colombia es un país inmensamente diverso, y bajo nuestros pies tenemos una complejidad similar. Con el encuentro de placas tectónicas enormes, <strong>nuestra geografía bulle de energía</strong>.</p>
+                <p>El algoritmo identificó estas fracturas invisibles de la tierra. A continuación, el "Mosaico Sísmico", un modelo 3D que reconstruye nuestra Colombia oculta.</p>
+            </div>
+            <div class="graph-wrapper full" style="height:600px;">
+                {html_3d}
+            </div>
+        </div>
+
+        <!-- TAB 2: EDA -->
+        <div id="EDA" class="tabcontent">
+            <h3>Exploración Inicial (Descubriendo el Patrón)</h3>
+            <p style="color:#4a5568; margin-bottom:20px;">Antes de aplicar clustering, vimos que la magnitud y la profundidad tenían historias distintas que contar. Las variables puramente geográficas se correlacionan directamente con el poder liberado.</p>
+            <div class="graphs-grid">
+                <div class="graph-wrapper">{html_mag}</div>
+                <div class="graph-wrapper">{html_depth}</div>
+                <div class="graph-wrapper full">{html_corr}</div>
+            </div>
+        </div>
+
+        <!-- TAB 3: MODELING & SCALING -->
+        <div id="Modeling" class="tabcontent">
+            <h3>La Importancia de Escalar en Machine Learning</h3>
+            <p style="color:#4a5568; margin-bottom:20px;">Geográficamente, la distancia de 1 grado en el mapa no equivale al impacto de 1 km de profundidad. Usar el <b>StandardScaler</b> nos permitió equilibrar esa información. El "Codo" y "Silhouette" validaron nuestras asunciones.</p>
+            <div class="graphs-grid">
+                <div class="graph-wrapper">{html_elbow}</div>
+                <div class="graph-wrapper">{html_sil}</div>
+                <div class="graph-wrapper full">
+                    {html_anim}
+                    <p style="text-align:center;color:#666;font-size:0.9rem;">Animación (Click en 'Play'): Izquierda (K-Means roto, junta cosas por latitud). Derecha (K-Means real, reconoce la fosa del pacífico vs placas profundas).</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: CLUSTERS Y SOCIEDAD -->
+        <div id="Clusters" class="tabcontent">
+            <div class="cards-grid">
+                <div class="kpi-card c-2">
+                    <div class="kpi-title" style="color:#EF553B;">🔴 Nido de Bucaramanga</div>
+                    <div class="kpi-desc">
+                        <strong>Los Santanderes.</strong> Alberga el 60% de los sismos de Colombia. La gente crece con la tierra temblando a 152 km de profundidad diaria. Ese dinamismo geológico parece reflejarse en un tejido social pujante, conocido por su temperamento <em>"fuerte y arrecho"</em>, resistente natural a las adversidades.
+                    </div>
+                </div>
+                <div class="kpi-card c-3">
+                    <div class="kpi-title" style="color:#AB63FA;">🟣 Costa Pacífica (Chocó/Valle)</div>
+                    <div class="kpi-desc">
+                        <strong>La Subducción.</strong> Esta región aloja los sismos superficiales más fuertes. Desafortunadamente, existe una doble vulnerabilidad: a la zona geológicamente más inestable, se le suma el histórico abandono y rezago socioeconómico, marginando sus culturas ricas al inminente peligro.
+                    </div>
+                </div>
+                <div class="kpi-card c-4">
+                    <div class="kpi-title" style="color:#FFA15A;">🟠 Borde Ecuatoriano (Nariño)</div>
+                    <div class="kpi-desc">
+                        <strong>Frontera Sur.</strong> Tiene el récord del terremoto más grande (7.8 Mag). Son zonas de conexión binacional (indígenas, campesinas), sometidas a inmensas presiones tectónicas que moldean su accidentada topografía andino-costera.
+                    </div>
+                </div>
+                <div class="kpi-card c-0">
+                    <div class="kpi-title" style="color:#00CC96;">🟢 Cordilleras Andinas</div>
+                    <div class="kpi-desc">
+                        <strong>Eje Central.</strong> Fallas superficiales que crearon nuestras cordilleras aislándolas entre sí. Geográficamente, estos picos desarrollaron subculturas únicas (paisas, rolos, opitas). Los sismos deforman activamente estas montañas donde vive casi toda Colombia.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="graph-wrapper full">
+                {html_time}
+            </div>
+        </div>
+
     </div>
 
-    <div class="cards-container">
-        <div class="card c-2">
-            <h3>🔴 Cluster 2: Nido Sísmico de Bucaramanga</h3>
-            <p>Este clúster (profundidad extrema de ~152 km) alberga la mayor concentración de sismos en el país. No es casualidad que alberge a la población de los Santanderes. Así como la incesante actividad telúrica estremece siempre la región, su gente es conocida por tener un carácter <strong>fuerte, decidido y "movido"</strong>. Viven, literally y culturalmente, sobre uno de los motores geológicos más activos del planeta.</p>
-        </div>
-        <div class="card c-3">
-            <h3>🟠 Cluster 3: La Furia del Pacífico</h3>
-            <p>La región costera del Chocó y el Valle. Un territorio maravillosamente biodiverso pero que enfrenta un <strong>latente peligro</strong> geológico por sismos ultra superficiales de las mayores magnitudes del país. Es un reflejo crudo de una zona que, marginada social y económicamente de forma histórica, también debe lidiar geográfica y geológicamente con los mayores percances y amenazas naturales.</p>
-        </div>
-        <div class="card c-4">
-            <h3>🟣 Cluster 4: Vulnerabilidad del Borde Ecuatoriano</h3>
-            <p>Esta intensa agrupación de sismos marca la zona de frontera occidental y es hogar del sismo individual más destructivo registrado en nuestra data (Magnitud 7.8). Otra región periférica golpeada severamente por el entorno.</p>
-        </div>
-        <div class="card c-0">
-            <h3>🔵 Cluster 0 y 1: La Espina Dorsal Andina</h3>
-            <p>Agrupa fallas intraplaca superficiales a lo largo de las cordilleras. Su incansable actividad dio origen a las montañas que hoy actúan como división natural, creando los innumerables pisos térmicos y el aislamiento que originó nuestra inmensa variedad de acentos y subculturas colombianas.</p>
-        </div>
-    </div>
-
-    <!-- Contenedor del Mapa 3D -->
-    <div class="graph-container">
-        {html_3d}
-    </div>
-
-    <div style="display: grid; grid-template-columns: 1fr; gap: 30px;">
-        <!-- Contenedor Animación en el Tiempo -->
-        <div class="graph-container">
-            {html_anim}
-            <p style="padding-top:15px; text-align:center; color:#4a5568;">
-                <strong>Interactúa ☝️:</strong> Presiona 'Play' para ver cómo surgen los sismos con el paso de los años. Observa cómo sin escalar los datos (Izquierda) el algoritmo falla completamente mezclando profundidades, mientras que con el método correcto (Derecha), la inteligencia artificial identifica naturalmente la cordillera, la fosa pacífica y el nido profundo de Colombia.
-            </p>
-        </div>
-
-        <!-- Contenedor Silhouette -->
-        <div class="graph-container">
-            {html_sil}
-            <p style="padding-top:10px; text-align:center; color:#4a5568;">
-                Métrica técnica: Decidimos usar K=5 soportados por el "Codo" en la Inercia y la meseta del Silhouette Score, combinándolo con la justificación del contexto experto (geológico y social).
-            </p>
-        </div>
-    </div>
-
-    <div class="footer">
-        <p>Proyecto Final de Machine Learning: Modelado No Supervisado • Construido para Impactar 🚀</p>
-    </div>
-
+    <script>
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+        
+        // Disparar resize para que Plotly ajuste los gráficos al 100% de la ventana oculta
+        setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 50);
+    }
+    </script>
 </body>
 </html>
